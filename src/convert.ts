@@ -1,3 +1,5 @@
+import { TransactionColumns } from "./bankin-v3";
+
 type RawRecord = Record<string, any>
 
 type ColumnData = string
@@ -28,6 +30,13 @@ interface FormatMapping {
     name: string;
     rules: ColumnMappingRule[];
 }
+
+function formatEuropeanNumber(num: number): string {
+    return new Intl.NumberFormat('de-DE', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(num);
+  }
 
 class Convert {
     mapColumn(to: string, from: string, mapper: ColumnmMapper): MapColumnRule {
@@ -87,7 +96,7 @@ class Convert {
         fromThousandSeparator = ','
     ): number {
         const sign = from.startsWith('-') ? -1 : 1;
-        if (sign === -1) {
+        if (from[0] === '-' || from[0] === '+') {
             from = from.substring(1);
         }
         const normalized = from
@@ -113,19 +122,45 @@ class Convert {
         });
     }
 
-    rawRecordsToCsv(records: RawRecord[]): string[][] {
+    rawRecordsToGSheetCsv(records: RawRecord[]): string[][] {
         if (records.length === 0) return [[]];
 
         const headers = Object.keys(records[0]);
         const csvData: string[][] = [headers];
 
+        const escapedColumns = [
+            TransactionColumns.DATE,
+            TransactionColumns.MONTH,
+        ];
+
+        const numberColumns = [
+            TransactionColumns.AMOUNT,
+            TransactionColumns.ABSOLUTE_AMOUNT,
+        ];
+
         records.forEach(record => {
-            const row: string[] = headers.map(header => record[header] ?? "");
+            // console.log(`Converting record: ${JSON.stringify(record)}`);
+            const row: string[] = headers
+                .map(header => {
+                    let value = record[header] ?? "";
+                    
+                    if (escapedColumns.includes(header)) {
+                        value = `'${value}`;
+                    }
+                    if (numberColumns.includes(header)) {
+                        const amount = this.parseAmount(value);
+                        value = formatEuropeanNumber(amount);
+                    }
+                    return value;
+                });
+            // console.log(`Converted row: ${JSON.stringify(row)}`);
             csvData.push(row);
         });
 
         return csvData;
     }
+
+
 
     parseDateDDMMYYYY(str: string): Date | null {
         const parts = str.split('/');
@@ -138,10 +173,31 @@ class Convert {
         return null;
     }
 
-    extractYearMonth(date: Date): string {
+    parseDateYYYYMMDD(str: string): Date | null {
+        const parts =
+            str.split('-').map(part => parseInt(part, 10));
+        if (parts.length === 3) {
+            const year = parts[0];
+            const month = parts[1] - 1;
+            const day = parts[2];
+            return new Date(year, month, day);
+        }
+        return null;
+    }
+
+    formatDateToYYYYMMDD(date: Date | null): string {
+        if (!date) return "";
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    extractYearMonth(date: Date | null): string {
+        if (!date) return "";
         const year = date.getFullYear();
         const month = date.getMonth() + 1;
-        return year.toString() + "/" + month.toString().padStart(2, '0');
+        return year.toString() + "-" + month.toString().padStart(2, '0');
     }
 
     normalizeData(

@@ -1,5 +1,4 @@
-
-import { BankinV3, RawRecord } from "./bankin-v3";
+import { BankinV3, RawRecord } from "../bankin-v3";
 
 function parseAmount(row: RawRecord) {
     const debit = row["Debit"] || "";
@@ -9,7 +8,7 @@ function parseAmount(row: RawRecord) {
     if (debit) {
         amount = BankinV3.Convert.parseAmount(debit, ",", ".");
     } else if (credit) {
-        amount = -BankinV3.Convert.parseAmount(credit, ",", ".");
+        amount = BankinV3.Convert.parseAmount(credit, ",", ".");
     } else {
         amount = 0;
     }
@@ -27,13 +26,20 @@ function mapBanquePop(rawData: string[][]) {
     const mapping = {
         name: "Banque Populaire",
         rules: [
-            BankinV3.Convert.copyColumn(BankinV3.Transactions.Columns.DATE, "Date de comptabilisation"),
+            BankinV3.Convert.mapColumn(
+                BankinV3.Transactions.Columns.DATE, 
+                "Date de comptabilisation",
+                (value: string) => {
+                    const date = BankinV3.Convert.parseDateDDMMYYYY(value);
+                    return date ? BankinV3.Convert.formatDateToYYYYMMDD(date) : "";
+                },
+            ),
             BankinV3.Convert.addComputedColumn(
                 BankinV3.Transactions.Columns.MONTH,
                 BankinV3.Transactions.Columns.DATE,
                 (value: string) => {
-                    const date = BankinV3.Convert.parseDateDDMMYYYY(value);
-                    return date ? BankinV3.Convert.extractYearMonth(date) : "";
+                    const date = BankinV3.Convert.parseDateYYYYMMDD(value);
+                    return value ? BankinV3.Convert.extractYearMonth(date) : "";
                 },
             ),
             BankinV3.Convert.addConstantColumn(BankinV3.Transactions.Columns.STATUS, BankinV3.Transactions.Statuses.VALID),

@@ -1,10 +1,10 @@
-import { mapBanquePop } from "../src/banquepop";
+import { mapBanquePop } from "../src/custom/banquepop";
 
 describe("mapBanquePop", () => {
     const rows = [
         ["Date de comptabilisation","Libelle simplifie","Libelle operation","Reference","Informations complementaires","Type operation","Categorie","Sous categorie","Debit","Credit","Date operation","Date de valeur","Pointage operation"],
         ["30/05/2025","libel simpl 1","label one","","","Carte bancaire","Transaction exclue","Transaction differee","-65,99","","30/05/2025","30/05/2025","0"],
-        ["28/05/2025","libel simpl 2","libel 2","0FDMWLI","redacted","Prelevement","Logement - maison","Internet et telephonie","2,00","","28/05/2025","28/05/2025","0"]
+        ["28/05/2025","libel simpl 2","libel 2","0FDMWLI","redacted","Prelevement","Logement - maison","Internet et telephonie","","+2,00","28/05/2025","28/05/2025","0"]
     ];
 
     test("map banque pop correctly", () => {
@@ -17,8 +17,8 @@ describe("mapBanquePop", () => {
             "Bank": "Banque Pop",
             "Category": "",
             "Concept": "libel simpl 1 label one",
-            "Date": "30/05/2025",
-            "Month": "2025/05",
+            "Date": "2025-05-30",
+            "Month": "2025-05",
             "Status": "VALID",
             "Sub Category": "",
         });
@@ -30,8 +30,8 @@ describe("mapBanquePop", () => {
             "Bank": "Banque Pop",
             "Category": "",
             "Concept": "libel simpl 2 libel 2",
-            "Date": "28/05/2025",
-            "Month": "2025/05",
+            "Date": "2025-05-28",
+            "Month": "2025-05",
             "Status": "VALID",
             "Sub Category": "",
         });

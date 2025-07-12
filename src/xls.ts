@@ -11,6 +11,11 @@ function convertXlsToGoogleSheet(file: GoogleAppsScript.Drive.File): GoogleAppsS
     });
 
     const importedSheet = SpreadsheetApp.openById(importedFile.id!).getSheets()[0];
+
+    // Assuming "Fecha Operación" is column A or find it dynamically if needed
+    // Format the entire column where dates are located as plain text to avoid auto-date conversion
+    importedSheet.getRange("A:A").setNumberFormat("@STRING@");
+
     return importedSheet;
 }
 

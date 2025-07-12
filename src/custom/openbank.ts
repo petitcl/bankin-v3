@@ -1,5 +1,5 @@
-import { BankinV3, RawRecord } from "./bankin-v3";
-import { convertXlsToGoogleSheet } from "./xls";
+import { BankinV3, RawRecord } from "../bankin-v3";
+import { convertXlsToGoogleSheet } from "../xls";
 
 function normalizeOpenBank(file: GoogleAppsScript.Drive.File): RawRecord[] {
     const tempSheet = convertXlsToGoogleSheet(file);
@@ -39,18 +39,46 @@ function normalizeOpenBank(file: GoogleAppsScript.Drive.File): RawRecord[] {
     return mapOpenBank(rawData);
 }
 
+function isValidDateDDMMYYYY(str: string): boolean { 
+    // Basic pattern: DD/MM/YYYY
+    const regex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+    const match = str.match(regex);
+    if (!match) return false;
+
+    return true;
+  }
+
 function mapOpenBank(rawData: any[]): RawRecord[] {
-    //[["Fecha Operación","","Fecha Valor","","Concepto","","Importe","","Saldo"],
-    // ["30/05/2025","","30/05/2025","","TRANSFERENCIA A FAVOR DE Clément Petit CONCEPTO: Internal transfer","","-3.000,00","","6.366,76"],["30/05/2025","","30/05/2025","","TRANSFERENCIA DE DATADOG CLOUD SPAIN, SL, CONCEPTO NOMINA/PID/05/B88259379000","","4.242,76","","9.366,76"],["30/05/2025","","30/05/2025","","TRANSFERENCIA A FAVOR DE Maria Del Carmen Moreno Gutier CONCEPTO: Renta C/ Cisneros 51 3er int dra","","-1.000,00","","5.124,00"],["29/05/2025","","29/05/2025","","Google pay: COMPRA EN MARKET QUEVEDO, CON LA TARJETA : 5489133178424402 EL 2025-05-29","","-3,23","","6.124,00"],["29/05/2025","","29/05/2025","","Google pay: COMPRA EN Honest Greens Serrano, CON LA TARJETA : 5489133178424402 EL 2025-05-27","","-15,40","","6.127,23"],["29/05/2025","","29/05/2025","","Google pay: COMPRA EN STAR, CON LA TARJETA : 5489133178424402 EL 2025-05-29","","-12,00","","6.142,63"],["29/05/2025","","29/05/2025","","RECIBO Simyo Nº RECIBO 0073 0100 755 CLCMVSH REF. MANDATO 35939607540750257124","","-28,99","","6.154,63"],["29/05/2025","","29/05/2025","","Google pay: COMPRA EN SAMSARA, CON LA TARJETA : 5489133178424402 EL 2025-05-29","","-22,00","","6.183,62"],["26/05/2025","","26/05/2025","","Google pay: COMPRA EN KALUA HELADOS, CON LA TARJETA : 5489133178424402 EL 2025-05-26","","-4,30","","6.205,62"],["26/05/2025","","26/05/2025","","COMPRA EN TIMELEFT SUBSCRIPTION, CON LA TARJETA : 5489133178424402 EL 2025-05-23","","-19,99","","6.209,92"],["26/05/2025","","26/05/2025","","COMPRA EN YOUTUBEPREMIUM, CON LA TARJETA : 5489133178424402 EL 2025-05-22","","-23,99","","6.229,91"],
     const mapping = {
         name: "Open Bank",
         rules: [
-            BankinV3.Convert.copyColumn(BankinV3.Transactions.Columns.DATE, "Fecha Operación"),
+            BankinV3.Convert.mapColumn(
+                BankinV3.Transactions.Columns.DATE, 
+                "Fecha Operación",
+                (value: any) => {
+                    if (typeof value === "string" && isValidDateDDMMYYYY(value)) {
+                        // If the date is in DD/MM/YYYY format, parse it directly
+                        return BankinV3.Convert.formatDateToYYYYMMDD(BankinV3.Convert.parseDateDDMMYYYY(value));
+                    }
+
+                    // weird xlsx format handling, don't ask me why
+                     if (typeof value === "object" && value instanceof Date) {
+                        value = value.toISOString();
+                    }
+                    const date = new Date(value);
+                    const day = date.getMonth() + 1;
+                    const month = date.getDate();
+                    const year = date.getFullYear();
+                    const ddmmyyyy = `${day < 10 ? "0" + day : day}/${month < 10 ? "0" + month : month}/${year}`;
+
+                    return BankinV3.Convert.formatDateToYYYYMMDD(BankinV3.Convert.parseDateDDMMYYYY(ddmmyyyy));
+                }
+            ),
             BankinV3.Convert.addComputedColumn(
                 BankinV3.Transactions.Columns.MONTH,
                 BankinV3.Transactions.Columns.DATE,
                 (value: string) => {
-                    const date = BankinV3.Convert.parseDateDDMMYYYY(value);
+                    const date = BankinV3.Convert.parseDateYYYYMMDD(value);
                     return date ? BankinV3.Convert.extractYearMonth(date) : "";
                 },
             ),
@@ -80,7 +108,9 @@ function mapOpenBank(rawData: any[]): RawRecord[] {
     const rawRecords = BankinV3.Convert.csvToRawRecords(rawData);
     console.log(`Raw records: ${JSON.stringify(rawRecords)}`);
 
-    return BankinV3.Convert.normalizeData(rawRecords, mapping);;
+    const result = BankinV3.Convert.normalizeData(rawRecords, mapping);
+    console.log(`Normalized records: ${JSON.stringify(result)}`);
+    return result;
 }
 
 export {

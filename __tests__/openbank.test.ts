@@ -1,10 +1,10 @@
-import { mapOpenBank } from '../src/openbank';
+import { mapOpenBank } from '../src/custom/openbank';
 
 describe("mapOpenBank", () => {
     const rows = [
         ["Fecha Operación", "", "Fecha Valor", "", "Concepto", "", "Importe", "", "Saldo"],
         ["30/05/2025", "", "30/05/2025", "", "sample debit 1", "", "-1.000,00", "", "1001,01"],
-        ["30/05/2025", "", "30/05/2025", "", "sample credit 1", "", "1.234,56", "", "1001,01"]
+        ["2025-12-05T08:00:00.000Z", "", "2025-12-05T08:00:00.000Z", "", "sample credit 1", "", "1.234,56", "", "1001,01"]
     ];
 
     test("map open bank correctly", () => {
@@ -17,8 +17,8 @@ describe("mapOpenBank", () => {
             "Bank": "OpenBank",
             "Category": "",
             "Concept": "sample debit 1",
-            "Date": "30/05/2025",
-            "Month": "2025/05",
+            "Date": "2025-05-30",
+            "Month": "2025-05",
             "Status": "VALID",
             "Sub Category": "",
         });
@@ -30,8 +30,8 @@ describe("mapOpenBank", () => {
             "Bank": "OpenBank",
             "Category": "",
             "Concept": "sample credit 1",
-            "Date": "30/05/2025",
-            "Month": "2025/05",
+            "Date": "2025-05-12",
+            "Month": "2025-05",
             "Status": "VALID",
             "Sub Category": "",
         });

@@ -1,6 +1,6 @@
 # secretu
 .clasp.json
-src/secrets.ts
+src/custom/secrets.ts
 
 # local dev / build files
 Code.js
