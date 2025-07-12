@@ -1,0 +1,8 @@
+# secretu
+.clasp.json
+src/secrets.ts
+
+# local dev / build files
+Code.js
+build/
+node_modules/
