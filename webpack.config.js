@@ -11,7 +11,10 @@ module.exports = {
     path: __dirname,
     filename: "Code.js",
     iife: false,
-    libraryTarget: 'this',
+    libraryTarget: 'var',  // expose as globals
+    library: 'BankinApp'   // available globally in GAS
+
+    // libraryTarget: 'this',
   },
   plugins: [
     new GasPlugin({

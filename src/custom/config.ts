@@ -97,7 +97,7 @@ const categorizationRules: CategorizationRule[] = [
         }
     },
     {
-        matcher: { label: "OMPRA EN CAFETERIA L'EUROPE" },
+        matcher: { label: "COMPRA EN CAFETERIA L'EUROPE" },
         action: {
             [TransactionColumns.CATEGORY]: "Entertainment",
             [TransactionColumns.SUB_CATEGORY]: "Bars / Clubs"
@@ -209,6 +209,20 @@ const categorizationRules: CategorizationRule[] = [
         }
     },
     {
+        matcher: { label: "COMPRA EN REGMA" },
+        action: {
+            [TransactionColumns.CATEGORY]: "Food",
+            [TransactionColumns.SUB_CATEGORY]: "Cofee Shops"
+        }
+    },
+    {
+        matcher: { label: "COMPRA EN RELIGION SPECIALITY COFFE" },
+        action: {
+            [TransactionColumns.CATEGORY]: "Food",
+            [TransactionColumns.SUB_CATEGORY]: "Cofee Shops"
+        }
+    },
+    {
         matcher: { label: "TRANSFERENCIA DE DATADOG CLOUD SPAIN" },
         action: {
             [TransactionColumns.CATEGORY]: "Incomes",
@@ -216,7 +230,7 @@ const categorizationRules: CategorizationRule[] = [
         }
     },
     {
-        matcher: { label: "COMPRA EN YOUTUBEPREMIUM" },
+        matcher: { label: "YOUTUBEPREMIUM" },
         action: {
             [TransactionColumns.CATEGORY]: "Bills",
             [TransactionColumns.SUB_CATEGORY]: "Online Services"
